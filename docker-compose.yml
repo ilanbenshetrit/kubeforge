@@ -1,0 +1,55 @@
+version: "3.9"
+
+services:
+
+  kubeforge:
+    build: .
+    container_name: kubeforge
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      ENVIRONMENT: production
+      DEBUG: "false"
+
+      # AI Co-Pilot
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: gpt-4o
+      COPILOT_LANGUAGE: hebrew
+
+      # Scanner
+      SCAN_INTERVAL_SECONDS: "3600"
+      SCAN_TARGET_PATHS: '["/data"]'
+      MAX_FILE_SIZE_MB: "50"
+
+      # Network scanner (optional — add hosts to enable)
+      # NETWORK_SCAN_HOSTS: '["localhost","10.0.0.1"]'
+
+      # Alerts
+      SLACK_WEBHOOK_URL: ${SLACK_WEBHOOK_URL:-}
+      ALERT_EMAIL: ${ALERT_EMAIL:-}
+
+      # DB path inside container
+      KUBEFORGE_DB_PATH: /db/kubeforge.db
+
+    volumes:
+      - ./sample-data:/data:ro        # files to scan (replace with your paths)
+      - kubeforge_db:/db              # persistent scan history DB
+
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+    networks:
+      - kubeforge_net
+
+volumes:
+  kubeforge_db:
+
+networks:
+  kubeforge_net:
+    driver: bridge
