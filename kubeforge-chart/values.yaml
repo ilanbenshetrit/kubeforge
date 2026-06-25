@@ -2,7 +2,7 @@ replicaCount: 3
 
 image:
   repository: kubeforge
-  tag: latest
+  tag: 0a26c1926bcb70bce0bbb2e1139bfd2cb28ed9c4
   pullPolicy: Never
 
 service:
